@@ -8,7 +8,7 @@ class User(Base):
     __tablename__ = "User"
     id = Column(Integer, primary_key=True)
     username = Column(String)
-    user_id = Column(Integer)
+    user_id = Column(Integer, unique=True)
     email = Column(String)
     balance = Column(REAL)
     n_card = Column(String)
