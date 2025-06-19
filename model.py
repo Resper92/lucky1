@@ -9,13 +9,15 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String)
     user_id = Column(Integer)
+    email = Column(String)
     balance = Column(REAL)
-    n_card = Column(Integer)
+    n_card = Column(String)
     pay_pal = Column(Integer)
     
-    def init__(self, username, user_id, balance, n_card, pay_pal):
+    def init__(self, username, user_id,email, balance, n_card, pay_pal):
         self.username = username
         self.user_id = user_id
+        self.email = email
         self.balance = balance
         self.n_card = n_card
         self.pay_pal = pay_pal
