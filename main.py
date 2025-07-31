@@ -191,4 +191,9 @@ def balance_handler(message):
     bot.send_message(message.chat.id, f"Ваш баланс: {balance}"
                      f"\nБаланс демо-гри: {demo_balance}")
     
+@bot.message_handler(commands=["buyHivepoint"])
+def buyHivepoint_handler(message):
+    pass
+
+
 bot.polling()

@@ -18,7 +18,7 @@ def set_bot(bot):
 def avvia_round(chat_id, mode="demo"):
     round_attivi[mode] = True
     chat_gioco[mode] = chat_id
-    bot_instance.send_message(chat_id, f"🎮 Round '{mode}' avviato. Fai la tua puntata con /versareal o /versademo")
+    bot_instance.send_message(chat_id, f"🎮 Раунд '{mode}' розпочато. Зробіть ставку через /versareal або /versademo")
     timer = threading.Timer(60, chiudi_round, args=[mode])
     timer_round[mode] = timer
     timer.start()
@@ -26,25 +26,25 @@ def avvia_round(chat_id, mode="demo"):
 
 def start_partecipazione(chat_id, user_id, username, importo, mode="demo"):
     if not round_attivi[mode]:
-        bot_instance.send_message(chat_id, f"❌ Il round '{mode}' non è attivo.")
+        bot_instance.send_message(chat_id, f"❌ Раунд '{mode}' наразі не активний.")
         return
 
     if user_id in partecipanti[mode]:
-        bot_instance.send_message(chat_id, "Hai già partecipato a questo round.")
+        bot_instance.send_message(chat_id, "Ви вже берете участь у цьому раунді.")
         return
 
     if importo < 5:
-        bot_instance.send_message(chat_id, "❌ Importo minimo: 5 hivepoint.")
+        bot_instance.send_message(chat_id, "❌ Мінімальна ставка: 5 HivePoint.")
         return
 
     user = db_session.query(User).filter_by(user_id=user_id).first()
     if not user:
-        bot_instance.send_message(chat_id, "❌ Utente non trovato.")
+        bot_instance.send_message(chat_id, "❌ Користувача не знайдено.")
         return
 
     saldo = user.demo_balance if mode == "demo" else user.balance
     if saldo < importo:
-        bot_instance.send_message(chat_id, "❌ Saldo insufficiente.")
+        bot_instance.send_message(chat_id, "❌ Недостатньо HivePoint.")
         return
 
     if mode == "demo":
@@ -57,7 +57,7 @@ def start_partecipazione(chat_id, user_id, username, importo, mode="demo"):
     db_session.commit()
 
     partecipanti[mode].add(user_id)
-    bot_instance.send_message(chat_id, f"✅ {username} ha partecipato con {importo} crediti!")
+    bot_instance.send_message(chat_id, f"✅ {username} зробив ставку {importo} HivePoint!")
 
 
 def chiudi_round(mode):
@@ -68,7 +68,7 @@ def chiudi_round(mode):
     for v in versamenti:
         partecipanti_data[v.username] = partecipanti_data.get(v.username, 0) + v.importo
 
-    # Se ci sono meno di 2 partecipanti unici, annulla e rimborsa
+    # Якщо менше 2 унікальних учасників — повернення ставок
     if len(partecipanti_data) < 2:
         for v in versamenti:
             user = db_session.query(User).filter_by(user_id=v.user_id).first()
@@ -79,13 +79,13 @@ def chiudi_round(mode):
                     user.balance += v.importo
         db_session.commit()
 
-        bot_instance.send_message(chat_id, "❌ Partecipanti insufficienti. Round annullato. I crediti sono stati restituiti.")
+        bot_instance.send_message(chat_id, "❌ Недостатньо учасників. Раунд скасовано. HivePoint повернуто.")
         db_session.query(Versamento).filter_by(tipo=mode).delete()
         db_session.commit()
         reset_round(mode)
         return
 
-    # Altrimenti procedi normalmente
+    # Інакше — обрати переможця
     nomi = list(partecipanti_data.keys())
     pesi = list(partecipanti_data.values())
     vincitore = random.choices(nomi, weights=pesi, k=1)[0]
@@ -110,10 +110,10 @@ def chiudi_round(mode):
 
     db_session.commit()
 
-    bot_instance.send_message(chat_id, f"🏁 Round '{mode}' terminato!\n"
-                                       f"Vincitore: {vincitore}\n"
-                                       f"Premio: {premio} crediti\n"
-                                       f"Commissione admin: {commissione} crediti")
+    bot_instance.send_message(chat_id, f"🏁 Раунд '{mode}' завершено!\n"
+                                       f"🏆 Переможець: {vincitore}\n"
+                                       f"💰 Приз: {premio} HivePoint\n"
+                                       f"👑 Комісія для адміна: {commissione} HivePoint")
 
     db_session.query(Versamento).filter_by(tipo=mode).delete()
     db_session.commit()
@@ -130,4 +130,4 @@ def reset_round(mode):
 
 
 def is_round_attivo(mode):
-    return round_attivi[mode] 
+    return round_attivi[mode]
