@@ -193,7 +193,7 @@ def balance_handler(message):
     
 @bot.message_handler(commands=["buyHivepoint"])
 def buyHivepoint_handler(message):
-    pass
+    
 
 
 bot.polling()
