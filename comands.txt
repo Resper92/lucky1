@@ -1,0 +1,12 @@
+all commands:
+start
+registration
+startdemo 
+real
+buyHivepoint
+
+admin :
+adminpanel
+rimuve
+blocca
+AddCredit

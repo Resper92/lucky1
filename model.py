@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, REAL, DateTime,  BigInteger, Boolean
 import datetime
 from sqlalchemy.orm import mapped_column
-from conectdb import Base
+from conectdb_Roman import Base
 
 
 class User(Base):

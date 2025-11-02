@@ -1,7 +1,7 @@
 import random
 import threading
 from model import Versamento, User
-from conectdb import db_session
+from conectdb_Roman import db_session
 
 bot_instance = None
 round_attivi = {"demo": False, "real": False}

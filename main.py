@@ -2,14 +2,16 @@ from telebot.types import Message
 import telebot
 import os
 from dotenv import load_dotenv
-from conectdb import db_session
+from conectdb_Roman import db_session
 from model import Versamento, User
 import game
+from crypto import create_invoice
 from sqlalchemy import func
 
 load_dotenv()
 bot = telebot.TeleBot(os.environ.get("TOKEN"))
 game.set_bot(bot)
+
 
 def is_admin(user_id):
     user = db_session.query(User).filter_by(user_id=user_id).first()
@@ -81,7 +83,7 @@ def admin_panel(message: Message):
     )
     bot.send_message(message.chat.id, msg)
 
-@bot.message_handler(commands=['aggiungicrediti'])
+@bot.message_handler(commands=['AddCredit'])
 def aggiungi_crediti(message: Message):
     if not is_admin(message.from_user.id):
         bot.send_message(message.chat.id, "🚫 У вас немає прав.")
@@ -89,7 +91,7 @@ def aggiungi_crediti(message: Message):
 
     parts = message.text.split()
     if len(parts) != 3 or not parts[1].startswith("@"):
-        bot.send_message(message.chat.id, "❌ Приклад: /aggiungicrediti @username 50")
+        bot.send_message(message.chat.id, "❌ Приклад: /AddCredit @username 50")
         return
 
     username = parts[1][1:]
@@ -108,7 +110,7 @@ def aggiungi_crediti(message: Message):
     db_session.commit()
     bot.send_message(message.chat.id, f"✅ {amount} кредитів додано користувачу @{username}.")
 
-@bot.message_handler(commands=['rimuovi'])
+@bot.message_handler(commands=['rimuve'])
 def rimuovi_user(message: Message):
     if not is_admin(message.from_user.id):
         bot.send_message(message.chat.id, "🚫 Доступ заборонено.")
@@ -116,7 +118,7 @@ def rimuovi_user(message: Message):
 
     parts = message.text.split()
     if len(parts) != 2 or not parts[1].startswith("@"):
-        bot.send_message(message.chat.id, "❌ Приклад: /rimuovi @username")
+        bot.send_message(message.chat.id, "❌ Приклад: /rimuve @username")
         return
 
     username = parts[1][1:]
@@ -150,7 +152,7 @@ def blocca_user(message: Message):
     db_session.commit()
     bot.send_message(message.chat.id, f"⛔ Користувача @{username} заблоковано.")
 
-@bot.message_handler(commands=["versademo"])
+@bot.message_handler(commands=["startdemo"])
 def versademo_handler(message):
     try:
         importo = float(message.text.split()[1])
@@ -165,7 +167,7 @@ def versademo_handler(message):
     username = message.from_user.username or f"user_{user_id}"
     game.start_partecipazione(message.chat.id, user_id, username, importo, mode="demo")
 
-@bot.message_handler(commands=["versareal"])
+@bot.message_handler(commands=["real"])
 def versareal_handler(message):
     try:
         importo = float(message.text.split()[1])
@@ -191,9 +193,29 @@ def balance_handler(message):
     bot.send_message(message.chat.id, f"Ваш баланс: {balance}"
                      f"\nБаланс демо-гри: {demo_balance}")
     
-@bot.message_handler(commands=["buyHivepoint"])
-def buyHivepoint_handler(message):
+@bot.message_handler(commands=["pay"])
+def ask_amount(message):
+    bot.send_message(message.chat.id, "💰 Введіть суму, яку хочете поповнити (у TON):")
+    bot.register_next_step_handler(message, process_amount)
+
+def process_amount(message):
+    try:
+        amount = float(message.text.strip())
+        if amount <= 0:
+            raise ValueError
+    except ValueError:
+        bot.send_message(message.chat.id, "❌ Введіть правильне число (наприклад: 5)")
+        return
     
+    bot.send_message(message.chat.id, "⏳ Створюю рахунок...")
+    invoice = create_invoice(amount, f"Поповнення від @{message.from_user.username}")
 
-
+    if invoice.get("ok"):
+        pay_url = invoice["result"]["pay_url"]
+        bot.send_message(message.chat.id, f"✅ Ваш рахунок готовий!\nСплатіть тут:\n{pay_url}")
+    else:
+        error = invoice.get("error", "Невідома помилка")
+        bot.send_message(message.chat.id, f"⚠️ Помилка під час створення рахунку: {error}")
+        
+        
 bot.polling()
