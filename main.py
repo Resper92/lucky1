@@ -8,6 +8,7 @@ import game
 from crypto import create_invoice
 from sqlalchemy import func
 
+
 load_dotenv()
 bot = telebot.TeleBot(os.environ.get("TOKEN"))
 game.set_bot(bot)

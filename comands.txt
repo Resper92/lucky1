@@ -10,3 +10,5 @@ adminpanel
 rimuve
 blocca
 AddCredit
+
+#TOKEN = '7771460111:AAFqpxCVzdRKP8Pz-UZxaRnYHWgOsOtjFvg'

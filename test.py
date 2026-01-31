@@ -18,7 +18,7 @@ def get_me(token):
 
 print(get_me(token))
 
-def create_invoice(amount, asset="TON", description="Test payment"):
+def create_invoice(amount, asset="JET", description="Test payment"):
     url = f"{BASE_URL}/createInvoice"
     headers = {
         "Crypto-Pay-API-Token": token

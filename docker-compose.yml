@@ -1,9 +1,26 @@
 services:
+
+  telebot:
+    build: .
+    container_name: telebot
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db_postgres
+
   db_postgres:
-    image: postgres
+    image: postgres:16
     restart: always
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example
+      - POSTGRES_DB=lucky_db
     hostname: db_host
     ports:
       - 5432:5432
+    volumes:
+      - lucky1_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  lucky1_postgres_data:
