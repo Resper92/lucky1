@@ -16,7 +16,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=example
       - POSTGRES_DB=lucky_db
-    hostname: db_host
     ports:
       - 5432:5432
     volumes:
