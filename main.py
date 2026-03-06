@@ -7,6 +7,10 @@ from model import Versamento, User
 import game
 from crypto import create_invoice
 from sqlalchemy import func
+import threading
+import asyncio
+import webhook
+
 
 
 load_dotenv()
@@ -111,7 +115,7 @@ def aggiungi_crediti(message: Message):
     db_session.commit()
     bot.send_message(message.chat.id, f"✅ {amount} кредитів додано користувачу @{username}.")
 
-@bot.message_handler(commands=['rimuve'])
+@bot.message_handler(commands=['remove'])
 def rimuovi_user(message: Message):
     if not is_admin(message.from_user.id):
         bot.send_message(message.chat.id, "🚫 Доступ заборонено.")
@@ -132,7 +136,7 @@ def rimuovi_user(message: Message):
     db_session.commit()
     bot.send_message(message.chat.id, f"✅ Користувача @{username} видалено.")
 
-@bot.message_handler(commands=['blocca'])
+@bot.message_handler(commands=['lock'])
 def blocca_user(message: Message):
     if not is_admin(message.from_user.id):
         bot.send_message(message.chat.id, "🚫 Доступ заборонено.")
@@ -153,12 +157,12 @@ def blocca_user(message: Message):
     db_session.commit()
     bot.send_message(message.chat.id, f"⛔ Користувача @{username} заблоковано.")
 
-@bot.message_handler(commands=["startdemo"])
+@bot.message_handler(commands=["demo"])
 def versademo_handler(message):
     try:
         importo = float(message.text.split()[1])
     except (IndexError, ValueError):
-        bot.send_message(message.chat.id, "❌ Формат неправильний. Використайте: /versademo 5")
+        bot.send_message(message.chat.id, "❌ Формат неправильний. Використайте: /demo 5")
         return
 
     if not game.is_round_attivo("demo"):
@@ -173,7 +177,7 @@ def versareal_handler(message):
     try:
         importo = float(message.text.split()[1])
     except (IndexError, ValueError):
-        bot.send_message(message.chat.id, "❌ Формат неправильний. Використайте: /versareal 5")
+        bot.send_message(message.chat.id, "❌ Формат неправильний. Використайте: /real 5")
         return
 
     if not game.is_round_attivo("real"):
@@ -208,8 +212,13 @@ def process_amount(message):
         bot.send_message(message.chat.id, "❌ Введіть правильне число (наприклад: 5)")
         return
     
+    user_id = message.from_user.id
     bot.send_message(message.chat.id, "⏳ Створюю рахунок...")
-    invoice = create_invoice(amount, f"Поповнення від @{message.from_user.username}")
+    invoice = create_invoice(
+        amount, 
+        f"Поповнення від @{message.from_user.username}",
+        payload=str(user_id)
+    )
 
     if invoice.get("ok"):
         pay_url = invoice["result"]["pay_url"]
@@ -218,5 +227,28 @@ def process_amount(message):
         error = invoice.get("error", "Невідома помилка")
         bot.send_message(message.chat.id, f"⚠️ Помилка під час створення рахунку: {error}")
         
-        
-bot.polling()
+if __name__ == '__main__':
+    # 1. Passa l'istanza del bot al modulo webhook
+    webhook.setup_bot_instance(bot)
+
+    # 2. Funzione per far girare il server asyncio nel thread
+    def run_webhook_service():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        # Avvia il server
+        loop.run_until_complete(webhook.start_webhook_server())
+        # Mantiene il loop in esecuzione
+        loop.run_forever()
+
+    # 3. Avvia il thread del webhook
+    webhook_thread = threading.Thread(target=run_webhook_service, daemon=True)
+    webhook_thread.start()
+    
+    print("🚀 Server Webhook avviato nel thread separato.")
+
+    # 4. Avvia il polling del bot (QUESTO DEVE ESSERE L'ULTIMO)
+    print("🤖 Bot in ascolto...")
+    try:
+        bot.infinity_polling(skip_pending=True)
+    except Exception as e:
+        print(f"Errore nel polling del bot: {e}")
