@@ -1,67 +1,93 @@
 from aiohttp import web
 from conectdb_Roman import db_session
-from model import User
 
-# Questa funzione verrà passata al webhook per inviare messaggi tramite il bot
+# Funzione per inviare messaggi tramite il bot (configurata in main.py)
 send_message_to_user = None
 
 def setup_bot_instance(bot_instance):
-    """
-    Imposta l'istanza del bot per poter inviare messaggi.
-    """
     global send_message_to_user
     send_message_to_user = bot_instance.send_message
 
 async def webhook_handler(request):
-    """
-    Gestisce le richieste in arrivo dal servizio di pagamento.
-    """
     if request.method != "POST":
         return web.Response(status=405, text="Method Not Allowed")
 
     try:
         data = await request.json()
-        # Qui assumeremo che il provider di pagamento invii 'user_id' e 'amount'
-        # Dovrai adattarlo in base a ciò che il tuo provider invia
-        user_id = data.get("user_id")
-        amount = data.get("amount")
+        inner_payload = data.get("payload", {})
+        
+        # ID utente (inviato come stringa nel payload di CryptoBot)
+        user_id_raw = inner_payload.get("payload") 
+        # Quantità di TON effettivamente pagata
+        amount_raw = inner_payload.get("paid_amount")
 
-        if not user_id or not amount:
-            print("Dati webhook incompleti:", data)
+        if not user_id_raw or not amount_raw:
+            print(f"⚠️ Dati incompleti ricevuti: {data}")
             return web.Response(status=400, text="Dati incompleti")
 
-        # Trova l'utente e aggiorna il suo bilancio
-        user = db_session.query(User).filter_by(user_id=user_id).first()
-        if user:
-            user.balance += float(amount)
-            db_session.commit()
-            print(f"Bilancio aggiornato per l'utente {user_id} di {amount}")
+        user_id = int(user_id_raw)
+        ton_versati = float(amount_raw)
+        
+        # LOGICA DI CONVERSIONE: 1 TON = 5 CREDITI
+        moltiplicatore = 5
+        crediti_da_aggiungere = ton_versati * moltiplicatore
 
-            # Invia un messaggio di conferma all'utente
+        from model import User, Versamento
+        user = db_session.query(User).filter_by(user_id=user_id).first()
+        
+        if user:
+    # Calcoli
+            ton_versati = float(amount_raw)
+            crediti_da_aggiungere = ton_versati * 5
+            user.balance += crediti_da_aggiungere
+
+    # Recuperiamo i dati mancanti dal JSON di CryptoBot (data)
+    # inner_payload è data.get("payload")
+            invoice_id = inner_payload.get("invoice_id")
+            valuta = inner_payload.get("asset")  # es. "TON"
+            stato = inner_payload.get("status") # es. "paid"
+
+    # CREAZIONE DEL VERSAMENTO (usando i nomi del tuo __init__)
+            nuovo_v = Versamento(
+                invoice_id=invoice_id,
+                user_id=user_id,
+                username=user.username, # Lo prendiamo dall'utente trovato nel DB
+                importo=ton_versati,    # Qui usiamo 'importo' come nel tuo model
+                valuta=valuta,
+                stato=stato
+            )
+    
+            db_session.add(nuovo_v)
+            db_session.commit()
+            # Notifica l'utente
             if send_message_to_user:
-                send_message_to_user(user_id, f"✅ Il tuo pagamento di {amount} TON è stato ricevuto e il tuo bilancio è stato aggiornato!")
+                messaggio = (
+                    f"✅ **Pagamento Confermato!**\n\n"
+                    f"💰 Hai versato: `{ton_versati}` TON\n"
+                    f"🎮 Crediti aggiunti: `+{crediti_da_aggiungere}`\n"
+                    f"💳 Nuovo saldo: `{user.balance}` crediti"
+                )
+                try:
+                    # Usiamo il metodo del bot passato da main.py
+                    send_message_to_user(user_id, messaggio)
+                except Exception as e:
+                    print(f"Errore invio messaggio bot: {e}")
             
             return web.Response(status=200, text="OK")
         else:
-            print(f"Utente non trovato con ID: {user_id}")
+            print(f"❌ Utente {user_id} non trovato nel database.")
             return web.Response(status=404, text="Utente non trovato")
 
     except Exception as e:
-        print(f"Errore nella gestione del webhook: {e}")
+        db_session.rollback()
+        print(f"🔥 Errore nel processare il webhook: {e}")
         return web.Response(status=500, text="Internal Server Error")
 
 async def start_webhook_server():
-    """
-    Avvia il server web per il webhook.
-    """
     app = web.Application()
     app.router.add_post("/webhook", webhook_handler)
-    
     runner = web.AppRunner(app)
     await runner.setup()
-    
-    # Ascolta su tutte le interfacce sulla porta 8080
     site = web.TCPSite(runner, '0.0.0.0', 8080)
     await site.start()
-    
-    print("🚀 Server webhook avviato su http://0.0.0.0:8080")
+    print("🚀 Server Webhook attivo sulla porta 8080 (1 TON = 5 Crediti)")
