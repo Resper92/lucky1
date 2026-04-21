@@ -5,11 +5,12 @@ from dotenv import load_dotenv
 from conectdb_Roman import db_session
 from model import Versamento, User
 import game
-from crypto import create_invoice
+from crypto import create_invoice , transfer
 from sqlalchemy import func
 import threading
 import asyncio
 import webhook
+import uuid
 
 
 
@@ -200,7 +201,7 @@ def balance_handler(message):
     
 @bot.message_handler(commands=["pay"])
 def ask_amount(message):
-    bot.send_message(message.chat.id, "💰 Введіть суму, яку хочете поповнити (у TON):")
+    bot.send_message(message.chat.id, "💰 Введіть суму, яку хочете поповнити (у USDT):")
     bot.register_next_step_handler(message, process_amount)
 
 def process_amount(message):
@@ -226,6 +227,83 @@ def process_amount(message):
     else:
         error = invoice.get("error", "Невідома помилка")
         bot.send_message(message.chat.id, f"⚠️ Помилка під час створення рахунку: {error}")
+        
+@bot.message_handler(commands=["payout"])
+def ask_payout_amount(message):
+    # Messaggio in Ucraino (come il tuo esempio precedente)
+    bot.send_message(message.chat.id, "💰 Введіть суму, яку хочете вивести (у USDT):")
+    bot.register_next_step_handler(message, process_payout)
+
+def process_payout(message):
+    user_id = message.from_user.id
+    
+    try:
+        # 1. Pulizia e validazione dell'input
+        raw_amount = float(message.text.strip().replace(',', '.'))
+        
+        # Eseguiamo la divisione per 5
+        amount = raw_amount / 5
+        
+        # Controllo che il risultato non sia minore di 10 USDT
+        if amount < 10:
+            bot.send_message(
+                message.chat.id, 
+                f"❌ Мінімальна сума для виведення після поділу — 10 USDT.\n"
+                f"Ваш результат: {amount:.2f} USDT (введено: {raw_amount:.2f})"
+            )
+            return
+            
+    except ValueError:
+        bot.send_message(message.chat.id, "❌ Будь ласка, введіть коректне число (наприклад: 50)")
+        return
+
+    # 2. Controllo saldo nel Database
+    user = db_session.query(User).filter_by(user_id=user_id).first()
+    
+    if not user:
+        bot.send_message(message.chat.id, "❌ Користувача не знайдено.")
+        return
+
+    # Il controllo del saldo deve essere fatto sull'importo DIVISO (amount)
+    if user.balance < amount:
+        bot.send_message(message.chat.id, f"⚠️ Недостатньо коштів! Ваш баланс: {user.balance:.2f} USDT")
+        return
+
+    bot.send_message(message.chat.id, "⏳ Обробка вашого виведення...")
+
+    # 3. Generazione ID univoco
+    unique_payload = f"payout_{user_id}_{uuid.uuid4().hex[:8]}"
+
+    # 4. Chiamata API Crypto Pay
+    try:
+        result = transfer(
+            user_id=user_id,
+            amount=amount, # Invia l'importo già diviso
+            description=f"Payout for @{user.username}",
+            payload=unique_payload
+        )
+
+        if result.get("ok"):
+            # 5. SUCCESSO
+            user.balance -= raw_amount
+            db_session.commit()
+            
+            transfer_data = result["result"]
+            bot.send_message(
+                message.chat.id, 
+                f"✅ Виведення успішне!\n\n"
+                f"💵 Сума (після поділу на 5): {amount:.2f} USDT\n"
+                f"💰 Новий баланс: {user.balance:.2f} USDT\n"
+                f"🆔 ID Транзакції: `{transfer_data['transfer_id']}`"
+            )
+        else:
+            error_name = result.get("error", {}).get("name", "UnknownError")
+            bot.send_message(message.chat.id, f"❌ Помилка API: {error_name}.")
+            
+    except Exception as e:
+        db_session.rollback()
+        bot.send_message(message.chat.id, "⚠️ Сталася технічна помилка.")
+        print(f"Errore Payout: {e}")
         
 if __name__ == '__main__':
     # 1. Passa l'istanza del bot al modulo webhook

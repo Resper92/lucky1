@@ -1,25 +1,39 @@
-services:
+version: '3.8'
 
+services:
+  # IL DATABASaE
+  db_postgres:
+    image: postgres:16  
+    container_name: db_postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-example}
+      - POSTGRES_DB=${DB_NAME:-lucky_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - lucky1_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-lucky_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # IL TUO BOT
   telebot:
     build: .
     container_name: telebot
     restart: unless-stopped
+    # Carica le variabili dal file .env (Token, API key, ecc.)
     env_file:
       - .env
-    depends_on:
-      - db_postgres
-
-  db_postgres:
-    image: postgres:16
-    restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=example
-      - POSTGRES_DB=lucky_db
-    ports:
-      - 5432:5432
-    volumes:
-      - lucky1_postgres_data:/var/lib/postgresql/data
+      - DB_HOST=db_postgres
+      - DB_PORT=5432
+    depends_on:
+      db_postgres:
+        condition: service_healthy # Il bot parte solo quando il DB è pronto
 
 volumes:
   lucky1_postgres_data:

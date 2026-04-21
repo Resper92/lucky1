@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, REAL, DateTime,  BigInteger, Boolean
+from sqlalchemy import Column, Integer, BigInteger, String, DateTime, REAL, ForeignKey, func, Boolean
 import datetime
 from sqlalchemy.orm import mapped_column
 from conectdb_Roman import Base
@@ -35,8 +35,8 @@ class Versamento(Base):
     importo = Column(REAL) 
     valuta = Column(String) 
     stato = Column(String)  
-    data_pagamento = Column(DateTime, default=datetime.timezone.utc)
-
+    data_pagamento = Column(DateTime, server_default=func.now())
+    
     def __init__(self, invoice_id, user_id, username, importo, valuta, stato):
         self.invoice_id = invoice_id
         self.user_id = user_id
@@ -44,3 +44,4 @@ class Versamento(Base):
         self.importo = importo
         self.valuta = valuta
         self.stato = stato
+        self.data_pagamento = datetime.datetime.now()

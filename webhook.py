@@ -14,74 +14,68 @@ async def webhook_handler(request):
 
     try:
         data = await request.json()
+        # Crypto Pay invia i dati dentro 'payload'
         inner_payload = data.get("payload", {})
         
-        # ID utente (inviato come stringa nel payload di CryptoBot)
+        # Verifichiamo che l'evento sia effettivamente un pagamento confermato
+        update_type = data.get("update_type")
+        status = inner_payload.get("status")
+
+        if update_type != "invoice_paid" or status != "paid":
+            return web.Response(status=200, text="Ignored non-paid update")
+
+        # Recuperiamo l'ID utente che abbiamo passato nel campo 'payload' durante la create_invoice
         user_id_raw = inner_payload.get("payload") 
-        # Quantità di TON effettivamente pagata
-        amount_raw = inner_payload.get("paid_amount")
+        amount_raw = inner_payload.get("amount") # Usiamo 'amount' (prezzo richiesto)
 
         if not user_id_raw or not amount_raw:
-            print(f"⚠️ Dati incompleti ricevuti: {data}")
             return web.Response(status=400, text="Dati incompleti")
 
         user_id = int(user_id_raw)
-        ton_versati = float(amount_raw)
+        valuta_reale = float(amount_raw)
         
-        # LOGICA DI CONVERSIONE: 1 TON = 5 CREDITI
-        moltiplicatore = 5
-        crediti_da_aggiungere = ton_versati * moltiplicatore
+        # LOGICA 1:5 (1 USDT/TON = 5 Crediti)
+        crediti_da_aggiungere = valuta_reale * 5
 
         from model import User, Versamento
         user = db_session.query(User).filter_by(user_id=user_id).first()
         
         if user:
-    # Calcoli
-            ton_versati = float(amount_raw)
-            crediti_da_aggiungere = ton_versati * 5
+            # Aggiornamento saldo
             user.balance += crediti_da_aggiungere
 
-    # Recuperiamo i dati mancanti dal JSON di CryptoBot (data)
-    # inner_payload è data.get("payload")
-            invoice_id = inner_payload.get("invoice_id")
-            valuta = inner_payload.get("asset")  # es. "TON"
-            stato = inner_payload.get("status") # es. "paid"
-
-    # CREAZIONE DEL VERSAMENTO (usando i nomi del tuo __init__)
+            # Creazione record Versamento
             nuovo_v = Versamento(
-                invoice_id=invoice_id,
+                invoice_id=int(inner_payload.get("invoice_id")),
                 user_id=user_id,
-                username=user.username, # Lo prendiamo dall'utente trovato nel DB
-                importo=ton_versati,    # Qui usiamo 'importo' come nel tuo model
-                valuta=valuta,
-                stato=stato
+                username=user.username,
+                importo=valuta_reale,
+                valuta=inner_payload.get("asset"),
+                stato=status
             )
     
             db_session.add(nuovo_v)
             db_session.commit()
-            # Notifica l'utente
+
             if send_message_to_user:
                 messaggio = (
-                    f"✅ **Pagamento Confermato!**\n\n"
-                    f"💰 Hai versato: `{ton_versati}` TON\n"
-                    f"🎮 Crediti aggiunti: `+{crediti_da_aggiungere}`\n"
-                    f"💳 Nuovo saldo: `{user.balance}` crediti"
+                    f"✅ **Баланс поповнено!**\n\n"
+                    f"💰 Отримано: `{valuta_reale}` {inner_payload.get('asset')}\n"
+                    f"🎮 Нараховано: `+{crediti_da_aggiungere}` кредитів\n"
+                    f"💳 Поточний баланс: `{user.balance}`"
                 )
                 try:
-                    # Usiamo il metodo del bot passato da main.py
                     send_message_to_user(user_id, messaggio)
-                except Exception as e:
-                    print(f"Errore invio messaggio bot: {e}")
+                except Exception: pass
             
             return web.Response(status=200, text="OK")
-        else:
-            print(f"❌ Utente {user_id} non trovato nel database.")
-            return web.Response(status=404, text="Utente non trovato")
+        
+        return web.Response(status=404, text="User not found")
 
     except Exception as e:
         db_session.rollback()
-        print(f"🔥 Errore nel processare il webhook: {e}")
-        return web.Response(status=500, text="Internal Server Error")
+        print(f"🔥 Webhook Error: {e}")
+        return web.Response(status=500, text="Error")
 
 async def start_webhook_server():
     app = web.Application()
