@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # IL DATABASaE
   db_postgres:

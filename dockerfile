@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.14-slim-bookworm
 
 # Evita la creazione di file .pyc (mantiene il container pulito)
 ENV PYTHONDONTWRITEBYTECODE=1

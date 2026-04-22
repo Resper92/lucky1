@@ -32,7 +32,7 @@ def handle_start(message):
     if user:
         bot.reply_to(message, "Ви вже зареєстровані.")
     else:
-        new_user = User(user_id=user_id, username=username, balance=0, demo_balance=100)
+        new_user = User(user_id=user_id, username=username, balance=0, demo_balance=100, email="", is_admin=False)
         db_session.add(new_user)
         db_session.commit()
         bot.reply_to(message, "✅ Реєстрація завершена. Використайте /registration для введення email.")

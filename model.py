@@ -15,7 +15,7 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     
     
-    def __init__(self, username, user_id,email, balance, demo_balance, is_admin):
+    def __init__(self, user_id, username, balance=0, demo_balance=100, email="", is_admin=False):
         self.username = username
         self.user_id = user_id
         self.email = email
