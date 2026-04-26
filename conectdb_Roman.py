@@ -11,7 +11,7 @@ db_port = os.environ.get("DB_PORT", "5432")
 db_name = os.environ.get("DB_NAME", "lucky_db")
 
 engine = create_engine(
-    f'postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/postgres')
+    f'postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/lucky_db')
 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
