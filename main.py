@@ -304,7 +304,21 @@ def process_payout(message):
         db_session.rollback()
         bot.send_message(message.chat.id, "⚠️ Сталася технічна помилка.")
         print(f"Errore Payout: {e}")
-        
+
+@bot.middleware_handler(update_types=['message', 'callback_query'])
+def manage_session(bot_instance, update):
+    try:
+        # Questo permette al messaggio di proseguire verso le tue funzioni
+        yield
+    except Exception as e:
+        # Se una tua funzione fallisce, facciamo il rollback qui per sbloccare tutto
+        db_session.rollback()
+        print(f"!!! Database Rollback eseguito dopo errore: {e}")
+        raise e
+    finally:
+        # Alla fine di ogni messaggio, puliamo la sessione per il prossimo
+        db_session.remove()     
+       
 if __name__ == '__main__':
     # 1. Passa l'istanza del bot al modulo webhook
     webhook.setup_bot_instance(bot)
