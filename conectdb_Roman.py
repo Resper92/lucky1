@@ -11,7 +11,7 @@ db_port = os.environ.get("DB_PORT", "5432")
 db_name = os.environ.get("DB_NAME", "lucky_db")
 
 engine = create_engine(
-    f'postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/lucky_db')
+    f'postgresql+psycopg2://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}')
 
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
@@ -26,3 +26,10 @@ def init_db():
     # you will have to import them first before calling init_db()
     import model
     Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = db_session()
+    try:
+        yield db
+    finally:
+        db.close()

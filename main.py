@@ -12,7 +12,7 @@ import asyncio
 import webhook
 import uuid
 
-
+telebot.apihelper.ENABLE_MIDDLEWARE = True
 
 load_dotenv()
 bot = telebot.TeleBot(os.environ.get("TOKEN"))

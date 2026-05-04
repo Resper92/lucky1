@@ -1,4 +1,4 @@
-FROM python:3.14-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 # Evita la creazione di file .pyc (mantiene il container pulito)
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -19,5 +19,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia tutto il codice
 COPY . .
+
+# Crea un utente non-root e imposta i permessi sulla cartella di lavoro
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
 
 CMD ["python", "main.py"]

@@ -1,0 +1,15 @@
+body {
+    background-color: #0e841b;
+    size: 0cap;
+}
+div {
+    text-align: center;
+    color: #fff;
+}
+a {
+    text-decoration: none;
+    color: #fff;
+}
+a:href {
+    text-decoration: underline;
+}

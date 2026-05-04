@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('css', path='/loghin.css') }}">
+    <title>Loghin</title>
+</head>
+<body>
+    <form action="/do_loghin" method="post">
+        <input type="text" name="username" placeholder="Username Telegram" required>
+        <input type="number" name="user_id" placeholder="ID Telegram" required>
+        <button type="submit">Loghin</button>
+    </form>
+    
+</body>
+</html>

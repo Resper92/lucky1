@@ -45,3 +45,22 @@ class Versamento(Base):
         self.valuta = valuta
         self.stato = stato
         self.data_pagamento = datetime.datetime.now()
+        
+class GiocataReal(Base):
+    __tablename__ = 'giocate_real'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('User.user_id'))
+    username = Column(String)
+    puntata = Column(REAL)
+    vincita = Column(REAL, default=0.0)
+    data = Column(DateTime(timezone=True), server_default=func.now())
+
+# --- Tabella Giocate DEMO ---
+class GiocataDemo(Base):
+    __tablename__ = 'giocate_demo'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('User.user_id'))
+    username = Column(String)
+    puntata = Column(REAL)
+    vincita = Column(REAL, default=0.0)
+    data = Column(DateTime(timezone=True), server_default=func.now())
