@@ -1,51 +1,98 @@
+/* Tavolozza colori Python/Flask */
+:root {
+    --bg-color: #1a1e24; /* Grigio bluastro scuro */
+    --container-bg: #242930;
+    --accent-blue: #306998; /* Blu Python */
+    --accent-yellow: #FFD43B; /* Giallo Python */
+    --text-color: #e0e0e0;
+    --input-bg: #0d1117;
+}
+
 body {
-    background-color: #27ae60; 
-    color: white;
-    /* AGGIUNTA: Centra tutto verticalmente e orizzontalmente */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    height: 100vh;
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-form {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 40px;
-    border-radius: 10px;
+.login-container {
+    background-color: var(--container-bg);
+    padding: 2.5rem;
+    border-radius: 12px;
+    border-top: 5px solid var(--accent-blue);
+    border-bottom: 5px solid var(--accent-yellow);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     text-align: center;
-    backdrop-filter: blur(5px);
-    /* AGGIUNTA: Un bordo sottile e una larghezza massima */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    width: 100%;
-    max-width: 400px;
+    width: 350px;
+    z-index: 10;
+}
+
+h2 {
+    color: var(--accent-yellow);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
 }
 
 input {
-    display: block;
     width: 100%;
-    margin: 15px 0; /* Aumentato un po' lo spazio */
     padding: 12px;
-    border-radius: 5px;
-    border: none;
-    /* AGGIUNTA: Migliora la leggibilità del testo digitato */
-    font-size: 16px;
+    background: var(--input-bg);
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #ffffff;
+    font-family: 'Consolas', monospace;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-button {
-    background-color: #1e8449;
-    color: white;
-    padding: 12px 20px;
+input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 2px rgba(48, 105, 152, 0.4);
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--accent-blue);
+    color: #ffffff;
     border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    width: 100%; /* Il bottone largo quanto l'input è più elegante */
-    font-size: 16px;
+    border-radius: 6px;
     font-weight: bold;
-    transition: background 0.3s ease;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
 }
 
-button:hover {
-    background-color: #145a32; /* Effetto al passaggio del mouse */
+.btn-submit:hover {
+    background-color: var(--accent-yellow);
+    color: var(--bg-color);
+    box-shadow: 0 5px 15px rgba(255, 212, 59, 0.4);
+    transform: translateY(-2px);
+}
+
+.footer-note {
+    margin-top: 1.5rem;
+    line-height: 1.4;
+    opacity: 0.6;
+    font-size: 0.8rem;
+}
+
+/* Animazione per l'icona */
+.warning-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.warning-icon:hover {
+    transform: rotate(15deg) scale(1.1);
 }

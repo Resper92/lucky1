@@ -1,17 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('css', path='/loghin.css') }}">
-    <title>Loghin</title>
+    <link rel="stylesheet" href="{{ url_for('css', path='loghin.css') }}">
+    <title>Вхід у Систему | Loghin</title>
 </head>
-<body>
-    <form action="/do_loghin" method="post">
-        <input type="text" name="username" placeholder="Username Telegram" required>
-        <input type="number" name="user_id" placeholder="ID Telegram" required>
-        <button type="submit">Loghin</button>
-    </form>
-    
+<body class="login-page">
+
+    <div class="login-container">
+        <!-- Logo o Icona cattiva -->
+        <div class="warning-icon" style="font-size: 3rem;">🔌</div>
+        
+        <h2>Zdrastvuite vas vitae dolja kabel</h2>
+        <p style="color: #bbb; font-size: 0.9rem;">Введіть свої дані, якщо сервер ще не впав...</p>
+
+        <form action="/do_loghin" method="post">
+            <!-- Username Telegram -->
+            <div class="input-group">
+                <input type="text" name="username" placeholder="@Username_Telegram" required>
+            </div>
+
+            <!-- ID Telegram -->
+            <div class="input-group">
+                <input type="number" name="user_id" placeholder="Ваш Telegram ID (цифрами)" required>
+            </div>
+
+            <!-- Il Bottone della Speranza -->
+            <button type="submit" class="btn-submit">
+                Натисни і Молись (Loghin)
+            </button>
+        </form>
+
+        <div class="footer-note" style="margin-top: 20px; font-size: 0.7rem; color: #666;">
+            * Увага: натискаючи кнопку, ви погоджуєтесь, що в разі помилки винний кабель, а не програміст.
+        </div>
+    </div>
+
 </body>
 </html>

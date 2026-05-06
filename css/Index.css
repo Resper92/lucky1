@@ -1,15 +1,90 @@
+/* Tema stile Python / Flask per l'Admin */
 body {
-    background-color: #0e841b;
-    size: 0cap;
+    background-color: #1a1e24; /* Grigio bluastro scuro */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Più moderno e pulito */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #ffffff;
 }
-div {
+
+.content {
     text-align: center;
-    color: #fff;
+    background-color: #242930; /* Container più chiaro */
+    padding: 40px;
+    border-radius: 12px;
+    border-top: 5px solid #FFD43B; /* Giallo Python */
+    border-bottom: 5px solid #306998; /* Blu Python */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: 500px;
+    width: 90%;
 }
-a {
+
+h1 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: #FFD43B; /* Giallo Python */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+p {
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.system-status {
+    background: #0d1117; /* Sfondo scuro stile console/IDE */
+    color: #e6edf3;
+    padding: 15px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    margin: 20px 0;
+    border: 1px solid #30363d;
+    text-align: left;
+}
+
+.system-status p {
+    margin: 0;
+}
+
+.log-init {
+    color: #8b949e; /* Grigio chiaro */
+}
+
+.log-message {
+    color: #79c0ff; /* Azzurro (stile IDE) */
+}
+
+.log-translation {
+    font-size: 0.8em;
+    color: #8b949e;
+    margin-top: 5px;
+}
+
+.challenge-text {
+    font-style: italic;
+    color: #8b949e;
+}
+
+a.btn-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 12px 25px;
+    background-color: #306998; /* Blu Python */
+    color: #ffffff;
     text-decoration: none;
-    color: #fff;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
-a:href {
-    text-decoration: underline;
+
+a.btn-link:hover {
+    background-color: #FFD43B; /* Giallo Python al passaggio */
+    color: #1a1e24; /* Testo scuro per contrasto */
+    box-shadow: 0 5px 15px rgba(255, 212, 59, 0.4);
+    transform: translateY(-2px);
 }

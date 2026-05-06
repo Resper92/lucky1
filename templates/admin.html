@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin</title>
+</head>
+<body>
+    <h1>Admin</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Balance</th>
+        </tr>
+        {% for user in utenti %}
+        <tr>
+            <td>{{ user.user_id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.balance }}</td>
+            <td>{{ user.demo_balance }}</td>
+            <td>{{ user.game_count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

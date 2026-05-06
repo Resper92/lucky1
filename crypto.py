@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 token = os.environ.get("CRYPTOPAY")
-BASE_URL = "https://pay.crypt.bot//api"
+BASE_URL = "https://pay.crypt.bot/api"
 
 def create_invoice(amount, description="Поповнення акаунту", payload=None):
     url = f"{BASE_URL}/createInvoice"

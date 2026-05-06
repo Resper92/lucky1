@@ -4,7 +4,7 @@ import uvicorn
 from fastapi.templating import Jinja2Templates 
 from fastapi.staticfiles import StaticFiles
 from conectdb_Roman import db_session , get_db
-from model import User
+from model import User , GiocataDemo , GiocataReal , Versamento
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -14,12 +14,12 @@ app.mount("/css", StaticFiles(directory="css"), name="css")
 
 templates = Jinja2Templates(directory="templates")
 
-def get_admin_user(request: Request, db: Session = Depends(get_db)):
+def get_admin_user(request: Request,db):
     user_id = request.cookies.get("admin_session")
     if not user_id:
         return None
     
-    user = db.query(User).filter(User.user_id == int(user_id)).first()
+    user = db_session.query(User).filter(User.user_id == int(user_id)).first()
     if user and user.is_admin:
         return user
     return None
@@ -47,6 +47,27 @@ async def do_loghin(username: str = Form(...),
     response = RedirectResponse(url="/admin", status_code=303)
     response.set_cookie(key="admin_session", value=str(user.user_id), httponly=True)
     return response
+
+@app.get("/admin",response_class=HTMLResponse)
+async def admin(request: Request, db: Session = Depends(get_db)):
+    # Passa 'db' alla funzione che recupera l'utente
+    user = get_admin_user(request, db) 
+    
+    if not user or not user.is_admin:
+        return RedirectResponse(url="/loghin")
+
+    utenti = db_session.query(User).all()
+    demo_rounds = db_session.query(GiocataDemo).filter(GiocataDemo.vincita > 0).all()
+    real_rounds = db_session.query(GiocataReal).filter(GiocataReal.vincita > 0).all()
+    transazioni = db_session.query(Versamento).all()
+
+    return templates.TemplateResponse(request=request, name="admin.html", context={
+        "utenti": utenti,
+        "demo_rounds": demo_rounds,
+        "real_rounds": real_rounds,
+        "transazioni": transazioni
+    })
+
     
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

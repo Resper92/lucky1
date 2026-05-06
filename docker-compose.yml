@@ -29,6 +29,8 @@ services:
     environment:
       - DB_HOST=db_postgres
       - DB_PORT=5432
+    ports:
+      - "8080:8080"
     depends_on:
       db_postgres:
         condition: service_healthy # Il bot parte solo quando il DB è pronto

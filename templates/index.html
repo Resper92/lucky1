@@ -1,15 +1,31 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{{ url_for('css', path='/Index.css') }}">
-    <title>Benvenuto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('css', path='Index.css') }}">
+    <title>Панель Керування | Admin Zone</title>
 </head>
 <body class="home-page">
     <div class="content">
-        <h1>Benvenuto nel Sistema</h1>
-        <p>Questa è la pagina pubblica.</p>
-        <a href="/loghin" class="btn-link">Accedi come Admin</a>
+        <!-- Titolo principale con un po' di drama -->
+        <h1>🖥️ Панель Керування: "Останній Шанс"</h1>
+        
+        <p>
+            Ласкаво просимо, о Великий Адміне! <br>
+            Ти зайшов сюди, а це означає, що сервер ще не згорів (принаймні, поки ти натискав <strong>"Login"</strong>).
+        </p>
+
+        <!-- Il box magico con la tua frase -->
+        <div class="system-status">
+            <p class="log-init">[SYSTEM_LOG]: Initializing...</p>
+            <p class="log-message">[MESSAGE]: "Zdrastvuite vas vitae dolja kabel"</p>
+            <p class="log-translation">(Trascrizione: Se leggi questo, il cavo sta ancora tenendo insieme l'universo)</p>
+        </div>
+
+        <p class="challenge-text">Спробуй увійти, якщо вистачить сміливості:</p>
+        
+        <a href="/loghin" class="btn-link">Увійти в Пекло (Login)</a>
     </div>
 </body>
 </html>

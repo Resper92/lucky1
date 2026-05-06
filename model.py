@@ -13,6 +13,7 @@ class User(Base):
     balance = Column(REAL)
     demo_balance = Column(REAL)
     is_admin = Column(Boolean, default=False)
+    is_blocked = Column(Boolean, default=False)
     
     
     def __init__(self, user_id, username, balance=0, demo_balance=100, email="", is_admin=False):
@@ -49,6 +50,7 @@ class Versamento(Base):
 class GiocataReal(Base):
     __tablename__ = 'giocate_real'
     id = Column(Integer, primary_key=True)
+    round_id = Column(String)
     user_id = Column(BigInteger, ForeignKey('User.user_id'))
     username = Column(String)
     puntata = Column(REAL)
@@ -59,6 +61,7 @@ class GiocataReal(Base):
 class GiocataDemo(Base):
     __tablename__ = 'giocate_demo'
     id = Column(Integer, primary_key=True)
+    round_id = Column(String)
     user_id = Column(BigInteger, ForeignKey('User.user_id'))
     username = Column(String)
     puntata = Column(REAL)

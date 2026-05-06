@@ -57,7 +57,7 @@ def get_email(message: Message):
     if user:
         user.email = email
         db_session.commit()
-        bot.send_message(user_id, "📩 Email збережено. Спробуйте демо-гру з /versademo або реальну з /versareal")
+        bot.send_message(user_id, "📩 Email збережено. Спробуйте демо-гру з /demo або реальну з /real")
     else:
         bot.send_message(user_id, "❌ Користувача не знайдено.")
 
@@ -145,7 +145,7 @@ def blocca_user(message: Message):
 
     parts = message.text.split()
     if len(parts) != 2 or not parts[1].startswith("@"):
-        bot.send_message(message.chat.id, "❌ Приклад: /blocca @username")
+        bot.send_message(message.chat.id, "❌ Приклад: /lock @username")
         return
 
     username = parts[1][1:]
@@ -230,26 +230,21 @@ def process_amount(message):
         
 @bot.message_handler(commands=["payout"])
 def ask_payout_amount(message):
-    # Messaggio in Ucraino (come il tuo esempio precedente)
-    bot.send_message(message.chat.id, "💰 Введіть суму, яку хочете вивести (у USDT):")
+    bot.send_message(message.chat.id, "💰 Введіть кількість HivePoint, яку хочете вивести:")
     bot.register_next_step_handler(message, process_payout)
 
 def process_payout(message):
     user_id = message.from_user.id
     
     try:
-        # 1. Pulizia e validazione dell'input
         raw_amount = float(message.text.strip().replace(',', '.'))
-        
-        # Eseguiamo la divisione per 5
         amount = raw_amount / 5
         
-        # Controllo che il risultato non sia minore di 10 USDT
         if amount < 10:
             bot.send_message(
                 message.chat.id, 
-                f"❌ Мінімальна сума для виведення після поділу — 10 USDT.\n"
-                f"Ваш результат: {amount:.2f} USDT (введено: {raw_amount:.2f})"
+                f"❌ Мінімальна сума для виведення — 50 HivePoint (10 USDT).\n"
+                f"Ви ввели: {raw_amount:.2f} HivePoint = {amount:.2f} USDT"
             )
             return
             
@@ -257,34 +252,29 @@ def process_payout(message):
         bot.send_message(message.chat.id, "❌ Будь ласка, введіть коректне число (наприклад: 50)")
         return
 
-    # 2. Controllo saldo nel Database
     user = db_session.query(User).filter_by(user_id=user_id).first()
     
     if not user:
         bot.send_message(message.chat.id, "❌ Користувача не знайдено.")
         return
 
-    # Il controllo del saldo deve essere fatto sull'importo DIVISO (amount)
-    if user.balance < amount:
-        bot.send_message(message.chat.id, f"⚠️ Недостатньо коштів! Ваш баланс: {user.balance:.2f} USDT")
+    if user.balance < raw_amount:
+        bot.send_message(message.chat.id, f"⚠️ Недостатньо коштів! Ваш баланс: {user.balance:.2f} HivePoint")
         return
 
     bot.send_message(message.chat.id, "⏳ Обробка вашого виведення...")
 
-    # 3. Generazione ID univoco
     unique_payload = f"payout_{user_id}_{uuid.uuid4().hex[:8]}"
 
-    # 4. Chiamata API Crypto Pay
     try:
         result = transfer(
             user_id=user_id,
-            amount=amount, # Invia l'importo già diviso
+            amount=amount, 
             description=f"Payout for @{user.username}",
             payload=unique_payload
         )
 
         if result.get("ok"):
-            # 5. SUCCESSO
             user.balance -= raw_amount
             db_session.commit()
             
@@ -292,8 +282,9 @@ def process_payout(message):
             bot.send_message(
                 message.chat.id, 
                 f"✅ Виведення успішне!\n\n"
-                f"💵 Сума (після поділу на 5): {amount:.2f} USDT\n"
-                f"💰 Новий баланс: {user.balance:.2f} USDT\n"
+                f"💵 Виведено: {amount:.2f} USDT\n"
+                f"🎮 Списано: {raw_amount:.2f} HivePoint\n"
+                f"💰 Новий баланс: {user.balance:.2f} HivePoint\n"
                 f"🆔 ID Транзакції: `{transfer_data['transfer_id']}`"
             )
         else:
